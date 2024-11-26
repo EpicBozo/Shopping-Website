@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+    <head>
+        <link rel="stylesheet" type = "text/css" href="{% static 'style.css' %}">
+        </script>
+    </head>
+    <body>
+        <div class="top">
+        <img src="{% static 'images/shopping.png' %}" alt="Shopping">
+        </div>
+        <div class="container">
+        <h1>Shopping search</h1>
+            <div class="main">
+                <form method="POST" action="results/">
+                    {% csrf_token %}
+                    <button id="search-button"></button>
+                    <input type="text" id="search" name="search" placeholder="search"><br><br>
+                </form>
+            </div>
+        </div>
+        <script src="{% static 'js/script.js' %}"></script>
+    </body>
+</html>
