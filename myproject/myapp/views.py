@@ -62,13 +62,10 @@ def scraper(request):
                 product_names = product_names_elements[i].text
                 product_price = product_price_elements[i].text
                 products_list.append({"names": product_names, "price": product_price})
+    
+    for product in products_list:
+        print(product["name"])
+
 
     
     return render(request, 'myapp/results.html', {"product_list": products_list})
-
-    
-
-
-
-
-
