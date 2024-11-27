@@ -5,10 +5,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 
 # Create your views here.
 
-#Selenium
+# Selenium
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
@@ -30,7 +31,7 @@ def scraper(request):
     page_height = driver.execute_script("return document.body.scrollHeight")
 
     scroll_increment = 200
-    scroll_pause = 0.2
+    scroll_pause = 0.1
 
     current_scroll = 0
 
@@ -45,17 +46,31 @@ def scraper(request):
             page_height = new_height  
         elif current_scroll >= page_height:  
             break
+    
+    # Debugging purposes
+    try:
+        products = driver.find_elements(By.CLASS_NAME, 'list--gallery--C2f2tvm search-item-card-wrapper-gallery')
+        print("Found 1")
+        print(len(products))
+    except NoSuchElementException:
+        print("The modals werent found L")
 
-    products = driver.find_elements(By.CLASS_NAME, 'list--gallery--C2f2tvm search-item-card-wrapper-gallery')
-
-    time.sleep(1)
 
     # initialize hashmap
     products_list = []
 
     for modal in products:
-        product_names_elements = modal.find_elements(By.CLASS_NAME, 'multi--titleText--nXeOvyr')
-        product_price_elements = modal.find_elements(By.CLASS_NAME, 'multi--price-sale--U-S0jtj')
+        try:
+            product_names_elements = modal.find_elements(By.CLASS_NAME, 'multi--titleText--nXeOvyr')
+            print("found 2")
+        except NoSuchElementException:
+            print("Notfound 2")
+
+        try:
+            product_price_elements = modal.find_elements(By.CLASS_NAME, 'multi--price-sale--U-S0jtj')
+            print("Found 3")
+        except NoSuchElementException:
+            print("Not found 3")
 
         if len(product_names_elements) == len(product_price_elements):
             for i in range(len(product_names_elements)):
@@ -65,7 +80,6 @@ def scraper(request):
     
     for product in products_list:
         print(product["name"])
-
 
     
     return render(request, 'myapp/results.html', {"product_list": products_list})
