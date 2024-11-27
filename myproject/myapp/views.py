@@ -26,18 +26,30 @@ def scraper(product_id):
     #Gets height of the entire page
     page_height = driver.execute_script("return document.body.scrollHeight")
 
-    while True:
-        # Scroll to the bottom of the page
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    scroll_increment = 200
+    scroll_pause = 0.5
 
-        time.sleep(5) # Loads the whole page
+    current_scroll = 0
 
-        current_height = driver.execute_script("return document.body.scrollHeight")
+    while current_scroll < page_height:
+        driver.execute_script(f"window.scrollTo(0, {current_scroll});")
+        current_scroll += scroll_increment
+        time.sleep(scroll_pause)
 
-        if page_height == current_height:
+        new_height = driver.execute_script("return document.body.scrollHeight")
+
+        if new_height > page_height:
+            page_height = new_height  
+        elif current_scroll >= page_height:  
             break
 
-        page_height = current_height
+    product_names = driver.find_elements(By.CLASS_NAME, 'multi--title--G7dOCj3')
+
+    time.sleep(1)
+
+    for product in product_names:
+        print(product.text)
+
     
 def results(request):
     text = request.POST.get('search')
