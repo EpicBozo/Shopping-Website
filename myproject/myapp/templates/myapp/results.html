@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <h1>{{text}}</h1>
+    <div = productlist>
+        <ul>
+            {% for product in product_list %}
+            <li>
+                <strong>{{product.names}}</strong><br>
+                Price: {{product.price}}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 </head>
 <body>
     

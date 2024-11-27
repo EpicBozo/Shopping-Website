@@ -12,22 +12,25 @@ from selenium.webdriver.common.by import By
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--disable-gpu")
 service = Service()
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 def index(request):
     return render(request, 'myapp/index.html')
 
-def scraper(product_id):
-    product_id = product_id.replace(" ", "-")
-    url = "https://www.aliexpress.us/w/wholesale-" + product_id + ".html"
+def scraper(request):
+    product_id = request.POST.get('search')
+    url_tag = product_id.replace(" ", "-")
+    url = "https://www.aliexpress.us/w/wholesale-" + url_tag + ".html"
     driver.get(url)
 
     #Gets height of the entire page
     page_height = driver.execute_script("return document.body.scrollHeight")
 
     scroll_increment = 200
-    scroll_pause = 0.5
+    scroll_pause = 0.2
 
     current_scroll = 0
 
@@ -43,18 +46,29 @@ def scraper(product_id):
         elif current_scroll >= page_height:  
             break
 
-    product_names = driver.find_elements(By.CLASS_NAME, 'multi--title--G7dOCj3')
+    products = driver.find_elements(By.CLASS_NAME, 'list--gallery--C2f2tvm search-item-card-wrapper-gallery')
 
     time.sleep(1)
 
-    for product in product_names:
-        print(product.text)
+    # initialize hashmap
+    products_list = []
+
+    for modal in products:
+        product_names_elements = modal.find_elements(By.CLASS_NAME, 'multi--titleText--nXeOvyr')
+        product_price_elements = modal.find_elements(By.CLASS_NAME, 'multi--price-sale--U-S0jtj')
+
+        if len(product_names_elements) == len(product_price_elements):
+            for i in range(len(product_names_elements)):
+                product_names = product_names_elements[i].text
+                product_price = product_price_elements[i].text
+                products_list.append({"names": product_names, "price": product_price})
 
     
-def results(request):
-    text = request.POST.get('search')
-    scraper(text)
-    return render(request, 'myapp/results.html', {'text': text})
+    return render(request, 'myapp/results.html', {"product_list": products_list})
+
+    
+
+
 
 
 
