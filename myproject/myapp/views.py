@@ -47,31 +47,19 @@ def scraper(request):
         elif current_scroll >= page_height:  
             break
     
-    # Debugging purposes
-    try:
-        products = driver.find_elements(By.CLASS_NAME, 'list--gallery--C2f2tvm search-item-card-wrapper-gallery')
-        print("Found 1")
-        print(len(products))
-    except NoSuchElementException:
-        print("The modals werent found L")
+    
+    products = driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')
+        
 
 
     # initialize hashmap
     products_list = []
 
     for modal in products:
-        try:
-            product_names_elements = modal.find_elements(By.CLASS_NAME, 'multi--titleText--nXeOvyr')
-            print("found 2")
-        except NoSuchElementException:
-            print("Notfound 2")
-
-        try:
-            product_price_elements = modal.find_elements(By.CLASS_NAME, 'multi--price-sale--U-S0jtj')
-            print("Found 3")
-        except NoSuchElementException:
-            print("Not found 3")
-
+        
+        product_names_elements = modal.find_elements(By.CLASS_NAME, 'multi--titleText--nXeOvyr')
+        product_price_elements = modal.find_elements(By.CLASS_NAME, 'multi--price-sale--U-S0jtj')
+        
         if len(product_names_elements) == len(product_price_elements):
             for i in range(len(product_names_elements)):
                 product_names = product_names_elements[i].text
@@ -79,7 +67,7 @@ def scraper(request):
                 products_list.append({"names": product_names, "price": product_price})
     
     for product in products_list:
-        print(product["name"])
+        print(product['names'])
 
     
     return render(request, 'myapp/results.html', {"product_list": products_list})
