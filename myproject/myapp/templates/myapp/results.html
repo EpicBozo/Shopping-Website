@@ -7,10 +7,12 @@
     <link rel="stylesheet" type = "text/css" href="{% static 'css/results.css' %}">
 </head>
 <body>
-    <div class = "upper_page">
-        <title>Results for {{product_id}}</title>
+    <title>Results for {{product_id}}</title>
+    <div class = "topnav">
+        <a href="{% url 'home' %}">Home</a>
+        <input type = "text" placeholder ="Search">
+        <h1>{{search_found}} results for {{product_id}}</h1>
     </div>
-    <h1>{{search_found}} results for {{product_id}}</h1>
     <div class = "product_list">
         <ul>
             {% for product in product_list %}
