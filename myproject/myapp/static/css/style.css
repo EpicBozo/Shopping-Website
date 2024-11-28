@@ -2,34 +2,34 @@ body{
     background-color: #1F1F1F;
 }
 
-h1 {
-    color: white;
-    margin-top: 10%;
-    font-family: Arial, Helvetica, sans-serif;
-    position: relative;
-    left: 40%;
-}
-
 .main{
-    display: flex;
+    display: inline-block;
     position: relative;
+    align-items: center;
     top: 15%;
     left: 40%;
 }
 
-.container{
-    margin-top: 20%;
+.search_container{
+    display: flex;
+    align-items: center;
 }
+
 input{
     background-color: #1F1F1F;
     border-color: gray;
     font-family: Arial, Helvetica, sans-serif;
     font-weight: bold;
     color: white;
-    width: 250px;
-    height: 30px;
+    width: 500px;
+    height: 38px;
     border-radius: 0 10px 10px 0;
     border-left: none;
+    margin: 0;
+    padding: 0 10px;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 button{
@@ -39,6 +39,11 @@ button{
     border-radius:10px 0 0 10px;
     border-right: none;
     transition: background-color 0.2s ease-in-out;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 button:hover{

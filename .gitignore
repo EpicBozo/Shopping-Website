@@ -1,2 +1,5 @@
 /my_venv
 /.vscode
+myproject/node_modules
+package-lock.json
+package.json
