@@ -2,16 +2,20 @@
 {% load static %}
 <html>
     <head>
-        <link rel="stylesheet" type = "text/css" href="{% static 'style.css' %}">
+        <link rel="stylesheet" type = "text/css" href="{% static 'css/style.css' %}">
         </script>
     </head>
     <body>
-        <div class="top">
-        <img src="{% static 'images/shopping.png' %}" alt="Shopping">
-        </div>
-        <div class="container">
-        <h1>Shopping search</h1>
-            <div class="main">
+        <div class="main">
+            <div class = "dropdown">
+                <button class="dropdown_button">Categories</button>
+                <div class="dropdown_content">
+                    <a href="#">Link 1</a>
+                    <a href="#">Link 2</a>
+                    <a href="#">Link 3</a>
+                </div>
+            </div>
+            <div class="search_container">
                 <form method="POST" action="results/">
                     {% csrf_token %}
                     <button id="search-button"></button>
