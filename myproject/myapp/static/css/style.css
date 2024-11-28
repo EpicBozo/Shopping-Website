@@ -5,14 +5,16 @@ body{
 .main{
     display: inline-block;
     position: relative;
+    justify-content: center;
     align-items: center;
-    top: 15%;
-    left: 40%;
+    display: flex;
+    top: 30%;
 }
 
 .search_container{
     display: flex;
     align-items: center;
+    margin-top: 20px;
 }
 
 input{
@@ -32,7 +34,7 @@ input{
     vertical-align: middle;
 }
 
-button{
+#search-button{
     background-color: limegreen;
     width: 50px;
     height: 38px;
@@ -46,11 +48,37 @@ button{
     vertical-align: middle;
 }
 
-button:hover{
+#search-button:hover{
     background-color: darkgreen;
 }
 
-button:active{
+#search-button:active{
     background-color: white !important;
 }
+
+.dropdown{
+    position: relative;
+    margin-right: 200px;
+}
+.dropdown_button{
+    background-color: #535353;
+    transition: background-color 0.2s ease-in-out;  
+    width: 200px;
+    height: 38px;
+    /* This doesnt feel right something may go wrong ngl*/
+}
+
+.dropdown_button:active{
+    background-color: black;
+}
+.dropdown_content{
+    display: none;
+    position: absolute;
+}
+
+.dropdown_content a{
+    color:white;
+    display: block;
+}
+
 
