@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
+import numpy as np
 
 # Create your views here.
 
@@ -49,8 +50,6 @@ def scraper(request):
     
     
     products = driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')
-        
-
 
     # initialize hashmap
     products_list = []
