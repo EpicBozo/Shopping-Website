@@ -2,14 +2,23 @@
     overflow: hidden;
     background-color: #1F1F1F;
     align-items: center;
+    display: flex;
 }
 
-.topnav a{
-    float: left;
-    color: black;
+.search{
+    margin-right: 200px;
+}
+
+.topnav a:link{
+    background-color: limegreen;
+    color: white;
+    width: 50px;
+    height: 46px;
     text-align: center;
-    transition: background-color 0.3s;
-    background-color: #047c04ec; 
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .topnav a:hover{
@@ -20,13 +29,36 @@
     background-color: #10cd03dc;
 
 }
+.search_button{
+    background-color: limegreen;
+    color: white;
+    width: 50px;
+    height: 46px;
+    border-radius:10px 0 0 10px;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+}
+
+
+.search_button:hover{
+    background-color: #039d03df;
+}
+
+.search_button:active{
+    background-color: #10cd03dc;
+
+}
+
 .topnav input[type=text]{
     margin: auto;
-    height: 30px;
-    width: 50%;
+    height: 40px;
+    width: 800px;
     border-radius: 2px;
     position: absolute;
-    right: 50;
 }
 
 .product_list{

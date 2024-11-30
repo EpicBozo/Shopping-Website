@@ -33,7 +33,7 @@
                 </div>
             </div>
             <div class="search_container">
-                <form method="POST" action="results/">
+                <form method="GET" action="results/">
                     {% csrf_token %}
                     <button id="search-button"></button>
                     <input type="text" id="search" name="search" placeholder="search"><br><br>

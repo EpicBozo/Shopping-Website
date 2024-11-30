@@ -22,7 +22,7 @@ def index(request):
     return render(request, 'myapp/index.html')
 
 def scraper(request):
-    product_id = request.POST.get('search')
+    product_id = request.GET.get('search')
     url_tag = product_id.replace(" ", "-")
     url = "https://www.aliexpress.us/w/wholesale-" + url_tag + ".html"
     driver.get(url)
