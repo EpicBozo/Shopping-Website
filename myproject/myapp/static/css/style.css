@@ -64,7 +64,7 @@ body{
     position: relative;
     margin-right: 200px;
 }
-.dropdown_button{
+#dropdown_button.off{
     background-color: #474646;
     transition: background-color 0.2s ease-in-out;  
     color: white;
@@ -76,10 +76,22 @@ body{
     /* This doesnt feel right something may go wrong ngl*/
 }
 
-.dropdown_button:active{
+#dropdown_button:active{
     background-color: black;
     border-radius: 20px 20px 0 0;
 }
+
+#dropdown_button.on{
+    background-color: black;
+    transition: background-color 0.2s ease-in-out;  
+    color: white;
+    width: 200px;
+    height: 38px;
+    border-radius: 20px 20px 0 0;
+    border: none;
+    outline: none;
+}
+
 .dropdown_content{
     display: none;
     position: absolute;
