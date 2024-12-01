@@ -68,3 +68,13 @@ def scraper(request):
     # Todo, fix the random product_names error
     
     return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id, "search_found": len(product_names)})
+
+def sort_price(request):
+    if request.method == 'GET':
+        sort_type = request.GET.get('sort-by')
+        if sort_type == "low-to-high":
+            print("Plow to high")
+        if sort_type == "high-to-low":
+            print("Phigh to low")
+
+    return render(request,'myapp/results.html')

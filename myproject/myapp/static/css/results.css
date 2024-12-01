@@ -73,7 +73,7 @@ body{
     position: relative;
     margin-left: 200px;
 }
-#dropdown_button.off{
+#filter_button.off{
     background-color: #474646;  
     color: white;
     width: 50px;
@@ -83,12 +83,12 @@ body{
     /* This doesnt feel right something may go wrong ngl*/
 }
 
-#dropdown_button:active{
+#filter_button:active{
     background-color: #1257bddf;
 }
 
-#dropdown_button.on{
-    background-color: black;
+#filter_button.on{
+    background-color: #1257bddf;
     transition: background-color 0.2s ease-in-out;  
     color: white;
     width: 50px;
@@ -116,4 +116,8 @@ body{
 
 .dropdown:active .dropdown_content{
     display:block;
+}
+
+#sort-by{
+    display: none;
 }

@@ -15,10 +15,13 @@
             <input type = "text" placeholder ="Search">
         </div>
         <div class = "dropdown">
-            <button id="dropdown_button" class="off">Filter</button>
+            <button id="filter_button" class="off">Filter</button>
             <div class="dropdown_content">
-                <button>Price: Low to High</button>
-                <button>Price: High to Low</button>
+                <form method="GET" action="sort">
+                    <button id = "low-to-high">Price: Low to High</button>
+                    <button id = "high-to-low">Price: High to Low</button>
+                    <input type = "text" id="sort-by" name="sort-by">
+                </form>
             </div>
         </div>
     </div>
