@@ -14,19 +14,19 @@
             <button class = "search_button"></button>
             <input type = "text" placeholder ="Search">
         </div>
-    </div>
-    <div class = "dropdown">
-        <button id="dropdown_button" class="off">Categories</button>
-        <div class="dropdown_content">
-            <a href = "#">Price: Low to High</a>
-            <a href = "#">Price: High to Low</a>
+        <div class = "dropdown">
+            <button id="dropdown_button" class="off">Filter</button>
+            <div class="dropdown_content">
+                <button>Price: Low to High</button>
+                <button>Price: High to Low</button>
+            </div>
         </div>
     </div>
-    <h1>{{search_found}} results for {{product_id}}</h1>
+    <h1 style="color:white">{{search_found}} results for {{product_id}}</h1>
     <div class = "product_list">
         <ul>
             {% for product in product_list %}
-            <li>
+            <li style="color:white">
                 <strong>{{product.names}}</strong><br>
                 Price: {{product.price}}
             </li>

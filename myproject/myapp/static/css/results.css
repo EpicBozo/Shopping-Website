@@ -1,14 +1,23 @@
+body{
+    background-color: #1F1F1F;
+}
+
 .topnav{
-    overflow: hidden;
+    overflow: visible;
     background-color: #1F1F1F;
     align-items: center;
     display: flex;
 }
 
 .search{
-    margin-right: 200px;
+    background-color: #1a18189e;
+    margin-left: 100px;
+    display: flex;
+    align-items: center;
 }
-
+.dropdown_content a:link{
+    background-color: gray;
+}
 .topnav a:link{
     background-color: limegreen;
     color: white;
@@ -37,10 +46,6 @@
     border-radius:10px 0 0 10px;
     text-align: center;
     text-decoration: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 10px;
 }
 
 
@@ -58,7 +63,6 @@
     height: 40px;
     width: 800px;
     border-radius: 2px;
-    position: absolute;
 }
 
 .product_list{
@@ -98,7 +102,7 @@
     position: absolute;
     text-align: center;
     background-color: #f1f1f1;
-    z-index: 1;
+    z-index: 1000;
     min-width: 200px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
