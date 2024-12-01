@@ -5,7 +5,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from django.shortcuts import redirect
 from selenium.common.exceptions import NoSuchElementException #debugging selenium
+
 
 # Create your views here.
 
@@ -23,6 +25,7 @@ def index(request):
 
 def scraper(request):
     product_id = request.GET.get('search')
+    request.session['product_id'] = product_id
     url_tag = product_id.replace(" ", "-")
     url = "https://www.aliexpress.us/w/wholesale-" + url_tag + ".html"
     driver.get(url)
@@ -74,13 +77,10 @@ def sort_price(request):
     if request.method == 'GET':
         sort_type = request.GET.get('sort-by')
         products_list = request.session.get('product_list',[])
-        print(len(products_list))
         if sort_type == "low-to-high":
-            low_high_list = sorted(products_list, key=lambda x: x['price'])
-            for price in low_high_list:
-                print(low_high_list(price))
+            low_high_list = sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')))
+            sorted_list = low_high_list
         if sort_type == "high-to-low":
-            high_low_list= sorted(products_list, key=lambda x: x['price'], reverse=True)
-            for price in low_high_list:
-                print(high_low_list(price))
-    return render(request,'myapp/results.html',{"product_list": products_list})
+            high_low_list= sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')) ,reverse=True)
+            sorted_list = high_low_list
+    return render(request, redirect('sort'),'myapp/results.html',{"product_list": sorted_list, "product_id": request.session.get('product_id'), "search_found": len(sorted_list)})
