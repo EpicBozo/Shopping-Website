@@ -5,8 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
-import numpy as np
+from selenium.common.exceptions import NoSuchElementException #debugging selenium
 
 # Create your views here.
 
@@ -53,6 +52,7 @@ def scraper(request):
 
     # initialize hashmap
     products_list = []
+    request.session['product_list'] = products_list
 
     for modal in products:
         
@@ -65,6 +65,7 @@ def scraper(request):
                 product_price = product_price_elements[i].text
                 products_list.append({"names": product_names, "price": product_price})
 
+
     # Todo, fix the random product_names error
     
     return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id, "search_found": len(product_names)})
@@ -72,9 +73,14 @@ def scraper(request):
 def sort_price(request):
     if request.method == 'GET':
         sort_type = request.GET.get('sort-by')
+        products_list = request.session.get('product_list',[])
+        print(len(products_list))
         if sort_type == "low-to-high":
-            print("Plow to high")
+            low_high_list = sorted(products_list, key=lambda x: x['price'])
+            for price in low_high_list:
+                print(low_high_list(price))
         if sort_type == "high-to-low":
-            print("Phigh to low")
-
-    return render(request,'myapp/results.html')
+            high_low_list= sorted(products_list, key=lambda x: x['price'], reverse=True)
+            for price in low_high_list:
+                print(high_low_list(price))
+    return render(request,'myapp/results.html',{"product_list": products_list})
