@@ -6,7 +6,7 @@ categories_button.addEventListener("click", function(){
         categories_button.classList.remove("off");
         categories_button.classList.add("on");
     } else {
-        categories_button.classList.remove("on");
+        categories_button.classLst.remove("on");
         categories_button.classList.add("off");
     }
 
@@ -16,3 +16,5 @@ categories_button.addEventListener("click", function(){
         dropdownContent.style.display = "none";
     }
 });
+
+//fix?
