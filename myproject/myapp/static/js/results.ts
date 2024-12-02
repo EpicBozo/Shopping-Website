@@ -3,6 +3,7 @@ make the dropdown button active
 why does shi not work
 */
 
+//ts
 document.addEventListener('DOMContentLoaded',(event) => {
     //Getting elements
 
