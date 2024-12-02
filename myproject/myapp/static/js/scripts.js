@@ -1,5 +1,5 @@
-const categories_button = document.getElementById("dropdown_button") as HTMLFormElement;
-const dropdownContent = document.querySelector(".dropdown_content") as HTMLFormElement;
+const categories_button = document.getElementById("dropdown_button") 
+const dropdownContent = document.querySelector(".dropdown_content")
 
 if(categories_button && dropdownContent){
 categories_button.addEventListener("click", function(){
