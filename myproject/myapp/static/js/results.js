@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded',(event) => {
     const low_to_high_button = document.getElementById("low-to-high");
     const high_to_low_button = document.getElementById("high-to-low")
     const sort_by_input = document.getElementById("sort-by");
+    const sort_form = document.getElementById("sort-by-form");
 
 
     //Filter dropdown handeling
@@ -35,10 +36,12 @@ document.addEventListener('DOMContentLoaded',(event) => {
 
     low_to_high_button.addEventListener("click", function(){
         sort_by_input.value = "low-to-high";
+        sort_form.submit();
     });
 
     high_to_low_button.addEventListener("click", function(){
         sort_by_input.value = "high-to-low";
+        sort_form.submit();
     });
 
 });
