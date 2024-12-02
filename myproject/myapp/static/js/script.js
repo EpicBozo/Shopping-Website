@@ -1,13 +1,12 @@
-const categories_button = document.getElementById("dropdown_button") 
+const categories_button = document.getElementById("dropdown_button");
 const dropdownContent = document.querySelector(".dropdown_content")
 
-if(categories_button && dropdownContent){
 categories_button.addEventListener("click", function(){
     if (categories_button.classList.contains("off")){
         categories_button.classList.remove("off");
         categories_button.classList.add("on");
     } else {
-        categories_button.classList.remove("on");
+        categories_button.classLst.remove("on");
         categories_button.classList.add("off");
     }
 
@@ -16,6 +15,6 @@ categories_button.addEventListener("click", function(){
     } else {
         dropdownContent.style.display = "none";
     }
-    
 });
-}
+
+//fix?
