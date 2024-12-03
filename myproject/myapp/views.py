@@ -17,6 +17,10 @@ chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument('--disable-dev-shm-usage')  # Optimize memory usage
+chrome_options.add_argument('--no-sandbox')  # Linux only
+chrome_options.add_argument('--disable-images')  # Disable images
+chrome_options.add_argument('--disable-extensions')
 service = Service()
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
