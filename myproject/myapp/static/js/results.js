@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     var sort_by_input = document.getElementById("sort-by");
     var sort_form = document.getElementById("sort-by-form");
     //Filter dropdown handeling
-    if (filter_button && dropdown_content) {
+
         filter_button.addEventListener("click", function () {
             if (filter_button.classList.contains("off")) {
                 filter_button.classList.remove("off");
@@ -29,15 +29,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
             }
         });
         //Handeling the hidden input field
-        if (low_to_high_button && high_to_low_button && sort_by_input && sort_form) {
-            low_to_high_button.addEventListener("click", function () {
-                sort_by_input.value = "low-to-high";
-                sort_form.submit();
+        
+        low_to_high_button.addEventListener("click", function () {
+            sort_by_input.value = "low-to-high";
+            sort_form.submit();
             });
-            high_to_low_button.addEventListener("click", function () {
-                sort_by_input.value = "high-to-low";
-                sort_form.submit();
+        high_to_low_button.addEventListener("click", function () {
+            sort_by_input.value = "high-to-low";
+            sort_form.submit();
             });
-        }
-    }
 });

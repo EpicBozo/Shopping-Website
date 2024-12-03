@@ -78,19 +78,24 @@ def scraper(request):
         else: 
             product_images = product_images_elements[0].get_attribute('src')
         products_list.append({"images": product_images})
+    
 
     # Todo, fix the random product_names error
     
     return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id,"product_images": product_images,"search_found": len(product_names)})
 
+# This broke today shi got me tweaking
 def sort_price(request):
     if request.method == 'GET':
         sort_type = request.GET.get('sort-by')
         products_list = request.session.get('product_list',[])
+        sorted_list = []
         if sort_type == "low-to-high":
+            print("low-to-high")
             low_high_list = sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')))
             sorted_list = low_high_list
         if sort_type == "high-to-low":
+            print("high-to-low")
             high_low_list= sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')) ,reverse=True)
             sorted_list = high_low_list
     return render(request,'myapp/results.html',{"product_list": sorted_list, "product_id": request.session.get('product_id'), "search_found": len(sorted_list)})
