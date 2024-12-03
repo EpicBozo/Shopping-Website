@@ -72,8 +72,6 @@ def scraper(request):
                 product_images = product_images_elements[0].get_attribute('src') if product_images_elements else None
                 products_list.append({"names": product_names, "price": product_price, "images": product_images})
 
-    for key in products_list:
-        print(key)
     # Todo, fix the random product_names error
     request.session['product_list'] = products_list
     
