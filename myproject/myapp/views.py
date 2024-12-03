@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from django.shortcuts import redirect
 from selenium.common.exceptions import NoSuchElementException #debugging selenium
 
@@ -15,7 +16,7 @@ from selenium.common.exceptions import NoSuchElementException #debugging seleniu
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-chrome_options.add_argument("--headless")
+#chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--disable-dev-shm-usage')  # Optimize memory usage
 chrome_options.add_argument('--no-sandbox')  # Linux only
@@ -27,6 +28,11 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 def index(request):
     return render(request, 'myapp/index.html')
 
+def wait_for_new_content(old_count):
+    WebDriverWait(driver, 10).until(
+        lambda d: len(d.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')) > old_count
+    )
+
 def scraper(request):
     product_id = request.GET.get('search')
     request.session['product_id'] = product_id
@@ -34,27 +40,25 @@ def scraper(request):
     url = "https://www.aliexpress.us/w/wholesale-" + url_tag + ".html"
     driver.get(url)
 
-    #Gets height of the entire page
-    page_height = driver.execute_script("return document.body.scrollHeight")
+    script = """
+        let observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.scrollIntoView({behavior: 'instant'});
+                observer.unobserve(entry.target); // Stop observing once loaded
+                }
+            });
+        }, { rootMargin: '50px' });
+        document.querySelectorAll('.lazy-load-class').forEach(element => observer.observe(element));
+        """
+    driver.execute_script(script)
 
-    scroll_increment = 200
-    scroll_pause = 0.1
+    for _ in range(10):
+        old_count = len(driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery'))
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(1)
+        wait_for_new_content(old_count)
 
-    current_scroll = 0
-
-    while current_scroll < page_height:
-        driver.execute_script(f"window.scrollTo(0, {current_scroll});")
-        current_scroll += scroll_increment
-        time.sleep(scroll_pause)
-
-        new_height = driver.execute_script("return document.body.scrollHeight")
-
-        if new_height > page_height:
-            page_height = new_height  
-        elif current_scroll >= page_height:  
-            break
-    
-    
     products = driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')
 
     # initialize hashmap
@@ -79,7 +83,7 @@ def scraper(request):
     # Todo, fix the random product_names error
     request.session['product_list'] = products_list
     
-    return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id,"search_found": len(product_names)})
+    return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id})
 
 # This broke today shi got me tweaking
 def sort_price(request):
@@ -93,4 +97,4 @@ def sort_price(request):
         if sort_type == "high-to-low":
             high_low_list= sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')) ,reverse=True)
             sorted_list = high_low_list
-    return render(request,'myapp/results.html',{"product_list": sorted_list, "product_id": request.session.get('product_id'), "search_found": len(sorted_list)})
+    return render(request,'myapp/results.html',{"product_list": sorted_list, "product_id": request.session.get('product_id')})
