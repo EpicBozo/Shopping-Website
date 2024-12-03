@@ -136,21 +136,35 @@ body{
     border: 1px solid #ccc;
     padding: 10px;
     box-sizing: border-box;
-    width: 20%;
+    width: 10%;
     border-radius: 5px;
     height: 15%;
 }
 
+.product_images{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    margin: auto;
+}
+
 .product img{
-    width: 30%;
-    height: auto;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
 }
 
 .product_name{
     width: 80%;
     height: 40px;
-    overflow-x: hidden;
+    overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     display: block;
+}
+
+.product_name h2{
+    font: 20px Arial, sans-serif;
 }

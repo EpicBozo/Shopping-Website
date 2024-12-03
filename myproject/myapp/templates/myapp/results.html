@@ -27,17 +27,25 @@
                 </form>
             </div>
         </div>
+        <div class="view_type">
+            <h1>View: </h1>
+            <button id="grid" class="on">Grid</button>
+            <button id="list" class="off">List</button>
+        </div>
     </div>
     <h1 style="color:white">{{search_found}} results for {{product_id}}</h1>
     <div class = "product_list">
         <div class = "product_container">
             {% for product in product_list %}
                 <div class = "product">
-                    <img class ="product_image" src="{{product.images}}">
+                    <div class="product_images">
+                        <img class ="product_image" src="{{product.images}}">
+                    </div>
                     <div class= "product_name">
                         <h2>{{product.names}}</h2>
                     </div>
                     <p>{{product.price}}</p>
+                    <a href=# class="product_link">View Product</a>
                 </div>
             {% endfor %}
             </div>
