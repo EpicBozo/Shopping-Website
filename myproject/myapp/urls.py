@@ -5,5 +5,5 @@ from myapp import views
 urlpatterns = [
     path('', views.index, name="home"),
     path('results/', views.scraper, name="results"),
-    path('results/sort/', views.sort_price, name="sort")
+    path('sort/', views.sort_price, name="sort")
 ]

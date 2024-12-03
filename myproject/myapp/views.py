@@ -55,7 +55,6 @@ def scraper(request):
 
     # initialize hashmap
     products_list = []
-    request.session['product_list'] = products_list
 
     # Todo add images and hyperlinks
     
@@ -70,19 +69,15 @@ def scraper(request):
             for i in range(len(product_names_elements)):
                 product_names = product_names_elements[i].text
                 product_price = product_price_elements[i].text
-                products_list.append({"names": product_names, "price": product_price})
+                product_images = product_images_elements[0].get_attribute('src') if product_images_elements else None
+                products_list.append({"names": product_names, "price": product_price, "images": product_images})
 
-        
-        if len(product_images_elements) == 0:
-            break
-        else: 
-            product_images = product_images_elements[0].get_attribute('src')
-        products_list.append({"images": product_images})
-    
-
+    for key in products_list:
+        print(key)
     # Todo, fix the random product_names error
+    request.session['product_list'] = products_list
     
-    return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id,"product_images": product_images,"search_found": len(product_names)})
+    return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id,"search_found": len(product_names)})
 
 # This broke today shi got me tweaking
 def sort_price(request):
@@ -91,11 +86,9 @@ def sort_price(request):
         products_list = request.session.get('product_list',[])
         sorted_list = []
         if sort_type == "low-to-high":
-            print("low-to-high")
             low_high_list = sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')))
             sorted_list = low_high_list
         if sort_type == "high-to-low":
-            print("high-to-low")
             high_low_list= sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')) ,reverse=True)
             sorted_list = high_low_list
     return render(request,'myapp/results.html',{"product_list": sorted_list, "product_id": request.session.get('product_id'), "search_found": len(sorted_list)})
