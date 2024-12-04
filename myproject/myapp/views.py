@@ -16,7 +16,7 @@ from selenium.common.exceptions import NoSuchElementException #debugging seleniu
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-#chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--disable-dev-shm-usage')  # Optimize memory usage
 chrome_options.add_argument('--no-sandbox')  # Linux only
@@ -40,27 +40,32 @@ def scraper(request):
     url = "https://www.aliexpress.us/w/wholesale-" + url_tag + ".html"
     driver.get(url)
 
-    script = """
-        let observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.scrollIntoView({behavior: 'instant'});
-                observer.unobserve(entry.target); // Stop observing once loaded
-                }
-            });
-        }, { rootMargin: '50px' });
-        document.querySelectorAll('.lazy-load-class').forEach(element => observer.observe(element));
-        """
-    driver.execute_script(script)
+     #Gets height of the entire page
+    page_height = driver.execute_script("return document.body.scrollHeight")
 
-    for _ in range(10):
-        old_count = len(driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery'))
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        wait_for_new_content(old_count)
+    scroll_increment = 200
+    scroll_pause = 0.1
 
-    products = driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')
+    current_scroll = 0
+    products =[]
 
+    while current_scroll < page_height:
+        driver.execute_script(f"window.scrollTo(0, {current_scroll});")
+        if driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery'):
+            products= driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')
+            current_scroll += scroll_increment
+            time.sleep(scroll_pause)
+        
+
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        
+        if new_height > page_height:
+            page_height = new_height  
+        elif current_scroll >= page_height:  
+            break
+    
+    print(len(products))
+    print(products)
     # initialize hashmap
     products_list = []
 
