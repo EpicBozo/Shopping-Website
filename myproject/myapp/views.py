@@ -33,9 +33,20 @@ def wait_for_new_content(old_count):
         lambda d: len(d.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')) > old_count
     )
 
-def scraper(request):
+def scrape(request):
     product_id = request.GET.get('search')
-    request.session['product_id'] = product_id
+    product_list = []
+    product_list.append(scrape_ali(product_id))
+    product_list.append(scrape_amazon(product_id))
+    product_list.append(scrape_ebay(product_id))
+    
+    return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
+def scrape_amazon(product_id):
+    pass
+def scrape_ebay(product_id):
+    pass
+
+def scrape_ali(product_id):
     url_tag = product_id.replace(" ", "-")
     url = "https://www.aliexpress.us/w/wholesale-" + url_tag + ".html"
     driver.get(url)
@@ -85,9 +96,8 @@ def scraper(request):
                 products_list.append({"names": product_names, "price": product_price, "images": product_images})
 
     # Todo, fix the random product_names error
-    request.session['product_list'] = products_list
     
-    return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id})
+    return products_list
 
 # This broke today shi got me tweaking
 def sort_price(request):
