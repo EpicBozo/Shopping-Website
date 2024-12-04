@@ -28,11 +28,6 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 def index(request):
     return render(request, 'myapp/index.html')
 
-def wait_for_new_content(old_count):
-    WebDriverWait(driver, 10).until(
-        lambda d: len(d.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')) > old_count
-    )
-
 def scrape(request):
     product_id = request.GET.get('search')
     product_list = []
@@ -41,20 +36,61 @@ def scrape(request):
     product_list.append(scrape_ebay(product_id))
     
     return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
+
+def link_generation(product_id):
+    company_links = {}
+    ali_id = product_id.replace(" ", "-")
+    amazon_ebay_id = product_id.replace(" ", "+")
+    amazon_link = "https://www.amazon.com/s?k=" + ali_id
+    ebay_link = "https://www.ebay.com/sch/i.html?_nkw=" + amazon_ebay_id
+    ali_link = "https://www.aliexpress.us/w/wholesale-" + amazon_ebay_id + ".html"
+    company_links["amazon"] = amazon_link
+    company_links["ebay"] = ebay_link
+    company_links["ali"] = ali_link
+
+    return company_links
+
 def scrape_amazon(product_id):
-    pass
+    link = link_generation(product_id)
+    url = link["amazon"]
+    driver.get(url)
+    
+    page_height = driver.execute_script("return document.body.scrollHeight")
+
+    scroll_increment = 300
+    scroll_pause = 0.1
+
+    current_scroll = 0
+    products =[]
+    
+    product_list = []
+    return product_list
+
 def scrape_ebay(product_id):
-    pass
+    link = link_generation(product_id)
+    url = link["ebay"]
+    driver.get(url)
+    
+    page_height = driver.execute_script("return document.body.scrollHeight")
+
+    scroll_increment = 300
+    scroll_pause = 0.1
+
+    current_scroll = 0
+    products =[]
+    
+    product_list = []
+    return product_list
 
 def scrape_ali(product_id):
-    url_tag = product_id.replace(" ", "-")
-    url = "https://www.aliexpress.us/w/wholesale-" + url_tag + ".html"
+    link = link_generation(product_id)
+    url = link["ali"]
     driver.get(url)
 
      #Gets height of the entire page
     page_height = driver.execute_script("return document.body.scrollHeight")
 
-    scroll_increment = 200
+    scroll_increment = 300
     scroll_pause = 0.1
 
     current_scroll = 0
