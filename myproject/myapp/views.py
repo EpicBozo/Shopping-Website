@@ -16,7 +16,7 @@ from selenium.common.exceptions import NoSuchElementException #debugging seleniu
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-# chrome_options.add_argument("--headless")
+chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--disable-dev-shm-usage')  # Optimize memory usage
 chrome_options.add_argument('--no-sandbox')  # Linux only
@@ -77,7 +77,6 @@ def scraper(request):
         product_price_elements = modal.find_elements(By.CLASS_NAME, 'multi--price-sale--U-S0jtj')
         product_images_elements = modal.find_elements(By.CLASS_NAME, 'images--item--3XZa6xf')
         product_links_elements = modal.find_elements(By.CSS_SELECTOR, ".multi-container .cards .search-card-item")
-            
         if len(product_names_elements) == len(product_price_elements):
             for i in range(len(product_names_elements)):
                 product_names = product_names_elements[i].text
@@ -103,3 +102,15 @@ def sort_price(request):
             high_low_list= sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')) ,reverse=True)
             sorted_list = high_low_list
     return render(request,'myapp/results.html',{"product_list": sorted_list, "product_id": request.session.get('product_id')})
+
+def price_range(request):
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    products_list = request.session.get('product_list',[])
+    filtered_list = []
+    for product in products_list:
+        price = float(product['price'].replace('$', '').replace(',', ''))
+        if price >= float(min_price) and price <= float(max_price):
+            filtered_list.append(product)
+    
+    return render(request, 'myapp/results.html', {"product_list": filtered_list, "product_id": request.session.get('product_id')})

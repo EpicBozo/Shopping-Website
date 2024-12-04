@@ -8,6 +8,14 @@
 </head>
 <body>
     <title>Results for {{product_id}}</title>
+    <div class ="side_bar">
+        <h3>Price range</h3>
+        <form method="GET" action={% url 'range' %}>
+            {% csrf_token %}
+            <input type="text" name="min_price" placeholder="Min Price">
+            <input type="text" name="max_price" placeholder="Max Price">
+            <button>Apply</button>
+    </div>
     <div class = "topnav">
         <a href="{% url 'home' %}">home</a>
         <div class ="search">

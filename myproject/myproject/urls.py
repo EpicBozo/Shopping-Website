@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('myapp.urls')),
     path('results/', include('myapp.urls')),
     path("sort/", include('myapp.urls')),
+    path("range/", include('myapp.urls')),
 ]
