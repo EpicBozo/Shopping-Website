@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 import time
+import asyncio
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -16,7 +17,7 @@ from selenium.common.exceptions import NoSuchElementException #debugging seleniu
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--disable-dev-shm-usage')  # Optimize memory usage
 chrome_options.add_argument('--no-sandbox')  # Linux only
@@ -28,25 +29,38 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 def index(request):
     return render(request, 'myapp/index.html')
 
-def get_product_info(request):
+async def get_product_info(request):
     product_id = request.GET.get('search')
     product_list = []
-    product_list.extend(scrape_ali(product_id))
-    # product_list.append(scrape_amazon(product_id))
+    ali_task = asyncio.create_task(scrape_ali(product_id))
+    #amazon_task = asyncio.create_task(scrape_amazon(product_id))
+    #ebay_task = asyncio.create_task(scrape_ebay(product_id))
+
+    product_list.extend(await ali_task)
+    #product_list.extend(await amazon_task)
     # product_list.append(scrape_ebay(product_id))
-    
-    print(product_list)
     
     return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
 
-def scrape(url, modal_link, product_name, product_price, product_image, product_link):
+def element_handling(modal, class_name):
+    print("was this called?")
+    if " " in class_name:
+        class_name = class_name.replace(" ", ".")
+        print(class_name)
+        element = modal.find_elements(By.CSS_SELECTOR, f'#card-list.{class_name}')
+    else:
+        element = modal.find_elements(By.CLASS_NAME, class_name)
+    return element
 
+def scrape(url, modal_link, product_name, product_price, product_image, product_link):
+    
+    print("Called scraper")
     driver.get(url)
     
     #Gets height of the entire page
     page_height = driver.execute_script("return document.body.scrollHeight")
 
-    scroll_increment = 200
+    scroll_increment = 300
     scroll_pause = 0.1
 
     current_scroll = 0
@@ -57,7 +71,7 @@ def scrape(url, modal_link, product_name, product_price, product_image, product_
         products_list = []
 
         driver.execute_script(f"window.scrollTo(0, {current_scroll});")
-        if driver.find_elements(By.CSS_SELECTOR, modal_link):
+        if element_handling(driver, modal_link):
             products= driver.find_elements(By.CSS_SELECTOR, modal_link)
             current_scroll += scroll_increment
             time.sleep(scroll_pause)
@@ -72,10 +86,12 @@ def scrape(url, modal_link, product_name, product_price, product_image, product_
 
     for modal in products:
         
-        product_names_elements = modal.find_elements(By.CLASS_NAME, product_name)
-        product_price_elements = modal.find_elements(By.CLASS_NAME, product_price)
-        product_images_elements = modal.find_elements(By.CLASS_NAME, product_image)
-        product_links_elements = modal.find_elements(By.CSS_SELECTOR, product_link)
+        product_names_elements = element_handling(modal, product_name)
+        product_price_elements = element_handling(modal, product_price)
+        product_images_elements = element_handling(modal, product_image)
+        product_links_elements = element_handling(modal, product_link)
+
+
         if len(product_names_elements) == len(product_price_elements):
             for i in range(len(product_names_elements)):
                 product_names = product_names_elements[i].text
@@ -83,8 +99,6 @@ def scrape(url, modal_link, product_name, product_price, product_image, product_
                 product_images = product_images_elements[0].get_attribute('src') if product_images_elements else None
                 products_list.append({"names": product_names, "price": product_prices, "images": product_images})
     
-    print(len(products_list))
-    print(len(products))
     return products_list
 
 
@@ -104,7 +118,10 @@ def link_generation(product_id):
 # def scrape_amazon(product_id):
 #     link = link_generation(product_id)
 #     url = link["amazon"]
-#     driver.get(url)
+
+#     product_modal_link = 'puisg-row'
+#     product_name_link = 'a-size-medium a-color-base a-text-normal'
+
     
 #     product_list = []
 #     return product_list
@@ -118,10 +135,11 @@ def link_generation(product_id):
 #     return product_list
 
 def scrape_ali(product_id):
+    print("Scraping Aliexpress")
     link = link_generation(product_id)
     url = link["ali"]
 
-    product_modal_link = '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery'
+    product_modal_link = 'list--gallery--C2f2tvm search-item-card-wrapper-gallery'
     product_names_link = 'multi--titleText--nXeOvyr'
     product_price_link = 'multi--price-sale--U-S0jtj'
     product_image_link= 'images--item--3XZa6xf'
@@ -132,7 +150,6 @@ def scrape_ali(product_id):
     
     return products_list
 
-# This broke today shi got me tweaking
 def sort_price(request):
     if request.method == 'GET':
         sort_type = request.GET.get('sort-by')

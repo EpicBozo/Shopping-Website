@@ -1,7 +1,4 @@
-/* TODO:
-make the dropdown button active
-why does shi not work
-*/
+
 document.addEventListener('DOMContentLoaded', function (event) {
     //Getting elements
     var filter_button = document.getElementById("filter_button");
