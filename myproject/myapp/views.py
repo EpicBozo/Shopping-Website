@@ -16,7 +16,7 @@ from selenium.common.exceptions import NoSuchElementException #debugging seleniu
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--disable-dev-shm-usage')  # Optimize memory usage
 chrome_options.add_argument('--no-sandbox')  # Linux only
@@ -28,14 +28,61 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 def index(request):
     return render(request, 'myapp/index.html')
 
-def scrape(request):
+def get_product_info(request):
     product_id = request.GET.get('search')
     product_list = []
     product_list.append(scrape_ali(product_id))
-    product_list.append(scrape_amazon(product_id))
-    product_list.append(scrape_ebay(product_id))
+    # product_list.append(scrape_amazon(product_id))
+    # product_list.append(scrape_ebay(product_id))
     
     return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
+
+def scrape(url, modal_link, product_name, product_price, product_image, product_link):
+
+    driver.get(url)
+    
+    #Gets height of the entire page
+    page_height = driver.execute_script("return document.body.scrollHeight")
+
+    scroll_increment = 200
+    scroll_pause = 0.1
+
+    current_scroll = 0
+    products =[]
+
+    while current_scroll < page_height:
+
+        products_list = []
+
+        driver.execute_script(f"window.scrollTo(0, {current_scroll});")
+        if driver.find_elements(By.CSS_SELECTOR, modal_link):
+            products= driver.find_elements(By.CSS_SELECTOR, modal_link)
+            current_scroll += scroll_increment
+            time.sleep(scroll_pause)
+        
+
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        
+        if new_height > page_height:
+            page_height = new_height  
+        elif current_scroll >= page_height:  
+            break
+
+    for modal in products:
+        
+        product_names_elements = modal.find_elements(By.CLASS_NAME, product_name)
+        product_price_elements = modal.find_elements(By.CLASS_NAME, product_price)
+        product_images_elements = modal.find_elements(By.CLASS_NAME, product_image)
+        product_links_elements = modal.find_elements(By.CSS_SELECTOR, product_link)
+        if len(product_names_elements) == len(product_price_elements):
+            for i in range(len(product_names_elements)):
+                product_names = product_names_elements[i].text
+                product_price = product_price_elements[i].text
+                product_images = product_images_elements[0].get_attribute('src') if product_images_elements else None
+                products_list.append({"names": product_names, "price": product_price, "images": product_images})
+            
+    return products_list
+
 
 def link_generation(product_id):
     company_links = {}
@@ -50,88 +97,34 @@ def link_generation(product_id):
 
     return company_links
 
-def scrape_amazon(product_id):
-    link = link_generation(product_id)
-    url = link["amazon"]
-    driver.get(url)
+# def scrape_amazon(product_id):
+#     link = link_generation(product_id)
+#     url = link["amazon"]
+#     driver.get(url)
     
-    page_height = driver.execute_script("return document.body.scrollHeight")
+#     product_list = []
+#     return product_list
 
-    scroll_increment = 300
-    scroll_pause = 0.1
-
-    current_scroll = 0
-    products =[]
+# def scrape_ebay(product_id):
+#     link = link_generation(product_id)
+#     url = link["ebay"]
+#     driver.get(url)
     
-    product_list = []
-    return product_list
-
-def scrape_ebay(product_id):
-    link = link_generation(product_id)
-    url = link["ebay"]
-    driver.get(url)
-    
-    page_height = driver.execute_script("return document.body.scrollHeight")
-
-    scroll_increment = 300
-    scroll_pause = 0.1
-
-    current_scroll = 0
-    products =[]
-    
-    product_list = []
-    return product_list
+#     product_list = []
+#     return product_list
 
 def scrape_ali(product_id):
     link = link_generation(product_id)
     url = link["ali"]
-    driver.get(url)
 
-     #Gets height of the entire page
-    page_height = driver.execute_script("return document.body.scrollHeight")
+    product_modal_link = '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery'
+    product_names_link = 'multi--titleText--nXeOvyr'
+    product_price_link = 'multi--price-sale--U-S0jtj'
+    product_image_link= 'images--item--3XZa6xf'
+    product_links_link = ".multi-container .cards .search-card-item"
+    products_list = scrape(url, product_modal_link, product_names_link, product_price_link, product_image_link, product_links_link)
 
-    scroll_increment = 300
-    scroll_pause = 0.1
-
-    current_scroll = 0
-    products =[]
-
-    while current_scroll < page_height:
-        driver.execute_script(f"window.scrollTo(0, {current_scroll});")
-        if driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery'):
-            products= driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')
-            current_scroll += scroll_increment
-            time.sleep(scroll_pause)
-        
-
-        new_height = driver.execute_script("return document.body.scrollHeight")
-        
-        if new_height > page_height:
-            page_height = new_height  
-        elif current_scroll >= page_height:  
-            break
     
-    print(len(products))
-    print(products)
-    # initialize hashmap
-    products_list = []
-
-    # Todo add images and hyperlinks
-    
-    for modal in products:
-        
-        product_names_elements = modal.find_elements(By.CLASS_NAME, 'multi--titleText--nXeOvyr')
-        product_price_elements = modal.find_elements(By.CLASS_NAME, 'multi--price-sale--U-S0jtj')
-        product_images_elements = modal.find_elements(By.CLASS_NAME, 'images--item--3XZa6xf')
-        product_links_elements = modal.find_elements(By.CSS_SELECTOR, ".multi-container .cards .search-card-item")
-        if len(product_names_elements) == len(product_price_elements):
-            for i in range(len(product_names_elements)):
-                product_names = product_names_elements[i].text
-                product_price = product_price_elements[i].text
-                product_images = product_images_elements[0].get_attribute('src') if product_images_elements else None
-                products_list.append({"names": product_names, "price": product_price, "images": product_images})
-
-    # Todo, fix the random product_names error
     
     return products_list
 
