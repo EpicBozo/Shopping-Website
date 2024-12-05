@@ -28,19 +28,22 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 def index(request):
     return render(request, 'myapp/index.html')
 
-def wait_for_new_content(old_count):
-    WebDriverWait(driver, 10).until(
-        lambda d: len(d.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')) > old_count
-    )
-
-def scraper(request):
+def get_product_info(request):
     product_id = request.GET.get('search')
-    request.session['product_id'] = product_id
-    url_tag = product_id.replace(" ", "-")
-    url = "https://www.aliexpress.us/w/wholesale-" + url_tag + ".html"
-    driver.get(url)
+    product_list = []
+    product_list.extend(scrape_ali(product_id))
+    # product_list.append(scrape_amazon(product_id))
+    # product_list.append(scrape_ebay(product_id))
+    
+    print(product_list)
+    
+    return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
 
-     #Gets height of the entire page
+def scrape(url, modal_link, product_name, product_price, product_image, product_link):
+
+    driver.get(url)
+    
+    #Gets height of the entire page
     page_height = driver.execute_script("return document.body.scrollHeight")
 
     scroll_increment = 200
@@ -50,9 +53,12 @@ def scraper(request):
     products =[]
 
     while current_scroll < page_height:
+
+        products_list = []
+
         driver.execute_script(f"window.scrollTo(0, {current_scroll});")
-        if driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery'):
-            products= driver.find_elements(By.CSS_SELECTOR, '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery')
+        if driver.find_elements(By.CSS_SELECTOR, modal_link):
+            products= driver.find_elements(By.CSS_SELECTOR, modal_link)
             current_scroll += scroll_increment
             time.sleep(scroll_pause)
         
@@ -63,31 +69,68 @@ def scraper(request):
             page_height = new_height  
         elif current_scroll >= page_height:  
             break
-    
-    print(len(products))
-    print(products)
-    # initialize hashmap
-    products_list = []
 
-    # Todo add images and hyperlinks
-    
     for modal in products:
         
-        product_names_elements = modal.find_elements(By.CLASS_NAME, 'multi--titleText--nXeOvyr')
-        product_price_elements = modal.find_elements(By.CLASS_NAME, 'multi--price-sale--U-S0jtj')
-        product_images_elements = modal.find_elements(By.CLASS_NAME, 'images--item--3XZa6xf')
-        product_links_elements = modal.find_elements(By.CSS_SELECTOR, ".multi-container .cards .search-card-item")
+        product_names_elements = modal.find_elements(By.CLASS_NAME, product_name)
+        product_price_elements = modal.find_elements(By.CLASS_NAME, product_price)
+        product_images_elements = modal.find_elements(By.CLASS_NAME, product_image)
+        product_links_elements = modal.find_elements(By.CSS_SELECTOR, product_link)
         if len(product_names_elements) == len(product_price_elements):
             for i in range(len(product_names_elements)):
                 product_names = product_names_elements[i].text
-                product_price = product_price_elements[i].text
+                product_prices = product_price_elements[i].text
                 product_images = product_images_elements[0].get_attribute('src') if product_images_elements else None
-                products_list.append({"names": product_names, "price": product_price, "images": product_images})
-
-    # Todo, fix the random product_names error
-    request.session['product_list'] = products_list
+                products_list.append({"names": product_names, "price": product_prices, "images": product_images})
     
-    return render(request, 'myapp/results.html', {"product_list": products_list, "product_id": product_id})
+    print(len(products_list))
+    print(len(products))
+    return products_list
+
+
+def link_generation(product_id):
+    company_links = {}
+    ali_id = product_id.replace(" ", "-")
+    amazon_ebay_id = product_id.replace(" ", "+")
+    amazon_link = "https://www.amazon.com/s?k=" + amazon_ebay_id
+    ebay_link = "https://www.ebay.com/sch/i.html?_nkw=" + amazon_ebay_id
+    ali_link = "https://www.aliexpress.us/w/wholesale-" + ali_id + ".html"
+    company_links["amazon"] = amazon_link
+    company_links["ebay"] = ebay_link
+    company_links["ali"] = ali_link
+
+    return company_links
+
+# def scrape_amazon(product_id):
+#     link = link_generation(product_id)
+#     url = link["amazon"]
+#     driver.get(url)
+    
+#     product_list = []
+#     return product_list
+
+# def scrape_ebay(product_id):
+#     link = link_generation(product_id)
+#     url = link["ebay"]
+#     driver.get(url)
+    
+#     product_list = []
+#     return product_list
+
+def scrape_ali(product_id):
+    link = link_generation(product_id)
+    url = link["ali"]
+
+    product_modal_link = '#card-list .list--gallery--C2f2tvm.search-item-card-wrapper-gallery'
+    product_names_link = 'multi--titleText--nXeOvyr'
+    product_price_link = 'multi--price-sale--U-S0jtj'
+    product_image_link= 'images--item--3XZa6xf'
+    product_links_link = ".multi-container .cards .search-card-item"
+    products_list = scrape(url, product_modal_link, product_names_link, product_price_link, product_image_link, product_links_link)
+
+    
+    
+    return products_list
 
 # This broke today shi got me tweaking
 def sort_price(request):
