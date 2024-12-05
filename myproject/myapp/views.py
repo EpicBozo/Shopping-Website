@@ -16,7 +16,7 @@ from selenium.common.exceptions import NoSuchElementException #debugging seleniu
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-# chrome_options.add_argument("--headless")
+chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--disable-dev-shm-usage')  # Optimize memory usage
 chrome_options.add_argument('--no-sandbox')  # Linux only
@@ -31,9 +31,11 @@ def index(request):
 def get_product_info(request):
     product_id = request.GET.get('search')
     product_list = []
-    product_list.append(scrape_ali(product_id))
+    product_list.extend(scrape_ali(product_id))
     # product_list.append(scrape_amazon(product_id))
     # product_list.append(scrape_ebay(product_id))
+    
+    print(product_list)
     
     return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
 
@@ -77,10 +79,12 @@ def scrape(url, modal_link, product_name, product_price, product_image, product_
         if len(product_names_elements) == len(product_price_elements):
             for i in range(len(product_names_elements)):
                 product_names = product_names_elements[i].text
-                product_price = product_price_elements[i].text
+                product_prices = product_price_elements[i].text
                 product_images = product_images_elements[0].get_attribute('src') if product_images_elements else None
-                products_list.append({"names": product_names, "price": product_price, "images": product_images})
-            
+                products_list.append({"names": product_names, "price": product_prices, "images": product_images})
+    
+    print(len(products_list))
+    print(len(products))
     return products_list
 
 
@@ -88,9 +92,9 @@ def link_generation(product_id):
     company_links = {}
     ali_id = product_id.replace(" ", "-")
     amazon_ebay_id = product_id.replace(" ", "+")
-    amazon_link = "https://www.amazon.com/s?k=" + ali_id
+    amazon_link = "https://www.amazon.com/s?k=" + amazon_ebay_id
     ebay_link = "https://www.ebay.com/sch/i.html?_nkw=" + amazon_ebay_id
-    ali_link = "https://www.aliexpress.us/w/wholesale-" + amazon_ebay_id + ".html"
+    ali_link = "https://www.aliexpress.us/w/wholesale-" + ali_id + ".html"
     company_links["amazon"] = amazon_link
     company_links["ebay"] = ebay_link
     company_links["ali"] = ali_link
