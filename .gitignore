@@ -4,3 +4,4 @@ myproject/node_modules
 package-lock.json
 package.json
 /test
+hidden_config.py

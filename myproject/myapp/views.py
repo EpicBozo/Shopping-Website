@@ -9,11 +9,27 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from django.shortcuts import redirect
 from selenium.common.exceptions import NoSuchElementException #debugging selenium
+from seleniumwire import webdriver as seleniumwirewebdriver
+from hidden_config import API_KEY
 
 
 # Create your views here.
 
 # Selenium
+proxy = f'http://scraperapi:{API_KEY}@proxy-server.scraperapi.com:8001'
+
+def proxy_driver():
+    chrome_options_with_proxy = Options()
+    chrome_options_with_proxy.add_experimental_option("detach", True)
+    chrome_options_with_proxy.add_argument('--headless')
+    chrome_options_with_proxy.add_argument('--disable-gpu')
+    chrome_options_with_proxy.add_argument('--disable-dev-shm-usage')
+    chrome_options_with_proxy.add_argument('--no-sandbox')
+    chrome_options_with_proxy.add_argument('--disable-images')
+    chrome_options_with_proxy.add_argument('--disable-extensions')
+    chrome_options_with_proxy.add_argument('--proxy-server=%s' % proxy)
+    driver = seleniumwirewebdriver.Chrome(service=service, options=chrome_options_with_proxy)
+    return driver
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
@@ -24,7 +40,6 @@ chrome_options.add_argument('--no-sandbox')  # Linux only
 chrome_options.add_argument('--disable-images')  # Disable images
 chrome_options.add_argument('--disable-extensions')
 service = Service()
-driver = webdriver.Chrome(service=service, options=chrome_options)
 
 def index(request):
     return render(request, 'myapp/index.html')
@@ -33,49 +48,45 @@ async def get_product_info(request):
     product_id = request.GET.get('search')
     product_list = []
     ali_task = asyncio.create_task(scrape_ali(product_id))
-    #amazon_task = asyncio.create_task(scrape_amazon(product_id))
+    amazon_task = asyncio.create_task(scrape_amazon(product_id))
     #ebay_task = asyncio.create_task(scrape_ebay(product_id))
 
-    product_list.extend(await ali_task)
-    #product_list.extend(await amazon_task)
-    # product_list.append(scrape_ebay(product_id))
+    ali_products = await ali_task
+    amazon_products = await amazon_task
+
+    product_list = ali_products + amazon_products
     
     return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
 
 def element_handling(modal, class_name):
-    print("was this called?")
     if " " in class_name:
         class_name = class_name.replace(" ", ".")
-        print(class_name)
-        element = modal.find_elements(By.CSS_SELECTOR, f'#card-list.{class_name}')
+        element =  modal.find_elements(By.CSS_SELECTOR, f'.{class_name}')
     else:
-        element = modal.find_elements(By.CLASS_NAME, class_name)
+        element =  modal.find_elements(By.CLASS_NAME, class_name)
     return element
 
-def scrape(url, modal_link, product_name, product_price, product_image, product_link):
-    
+async def scrape(url, modal_link, product_name, product_price, product_image, product_link, driver):
     print("Called scraper")
     driver.get(url)
     
-    #Gets height of the entire page
+    # Gets height of the entire page
     page_height = driver.execute_script("return document.body.scrollHeight")
 
     scroll_increment = 300
     scroll_pause = 0.1
 
     current_scroll = 0
-    products =[]
+    products = []
 
     while current_scroll < page_height:
-
-        products_list = []
-
         driver.execute_script(f"window.scrollTo(0, {current_scroll});")
-        if element_handling(driver, modal_link):
-            products= driver.find_elements(By.CSS_SELECTOR, modal_link)
+        css_selector = modal_link.replace(" ", ".")
+        modal_paramter = f'#card-list .{css_selector}'
+        if driver.find_elements(By.CSS_SELECTOR, modal_paramter):
+            products = driver.find_elements(By.CSS_SELECTOR, modal_paramter)
             current_scroll += scroll_increment
-            time.sleep(scroll_pause)
-        
+            await asyncio.sleep(scroll_pause)
 
         new_height = driver.execute_script("return document.body.scrollHeight")
         
@@ -83,14 +94,13 @@ def scrape(url, modal_link, product_name, product_price, product_image, product_
             page_height = new_height  
         elif current_scroll >= page_height:  
             break
+    
+    products_list = []
 
     for modal in products:
-        
         product_names_elements = element_handling(modal, product_name)
         product_price_elements = element_handling(modal, product_price)
         product_images_elements = element_handling(modal, product_image)
-        product_links_elements = element_handling(modal, product_link)
-
 
         if len(product_names_elements) == len(product_price_elements):
             for i in range(len(product_names_elements)):
@@ -115,16 +125,20 @@ def link_generation(product_id):
 
     return company_links
 
-# def scrape_amazon(product_id):
-#     link = link_generation(product_id)
-#     url = link["amazon"]
+async def scrape_amazon(product_id):
+    print("Scraping Amazon")
+    driver = proxy_driver()
+    link = link_generation(product_id)
+    url = link["amazon"]
 
-#     product_modal_link = 'puisg-row'
-#     product_name_link = 'a-size-medium a-color-base a-text-normal'
-
+    product_modal_link = 'puisg-row'
+    product_name_link = 'a-size-medium a-color-base a-text-normal'
+    product_price_link = 'a-offscreen'
+    product_image_link = 's-image'
+    product_links_link = ".s-main-slot .s-result-item"
     
-#     product_list = []
-#     return product_list
+    products_list = await scrape(url, product_modal_link, product_name_link, product_price_link, product_image_link, product_links_link, driver)
+    return products_list
 
 # def scrape_ebay(product_id):
 #     link = link_generation(product_id)
@@ -134,8 +148,9 @@ def link_generation(product_id):
 #     product_list = []
 #     return product_list
 
-def scrape_ali(product_id):
-    print("Scraping Aliexpress")
+async def scrape_ali(product_id):
+    print("Scraping Ali")
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     link = link_generation(product_id)
     url = link["ali"]
 
@@ -144,10 +159,8 @@ def scrape_ali(product_id):
     product_price_link = 'multi--price-sale--U-S0jtj'
     product_image_link= 'images--item--3XZa6xf'
     product_links_link = ".multi-container .cards .search-card-item"
-    products_list = scrape(url, product_modal_link, product_names_link, product_price_link, product_image_link, product_links_link)
+    products_list = await scrape(url, product_modal_link, product_names_link, product_price_link, product_image_link, product_links_link, driver)
 
-    
-    
     return products_list
 
 def sort_price(request):
