@@ -10,7 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from django.shortcuts import redirect
 from selenium.common.exceptions import NoSuchElementException #debugging selenium
 from seleniumwire import webdriver as seleniumwirewebdriver
-from hidden_config import API_KEY
+from .hidden_config import API_KEY
 
 
 # Create your views here.
@@ -19,9 +19,10 @@ from hidden_config import API_KEY
 proxy = f'http://scraperapi:{API_KEY}@proxy-server.scraperapi.com:8001'
 
 def proxy_driver():
+    print("Called proxy driver")
     chrome_options_with_proxy = Options()
     chrome_options_with_proxy.add_experimental_option("detach", True)
-    chrome_options_with_proxy.add_argument('--headless')
+    #chrome_options_with_proxy.add_argument('--headless')
     chrome_options_with_proxy.add_argument('--disable-gpu')
     chrome_options_with_proxy.add_argument('--disable-dev-shm-usage')
     chrome_options_with_proxy.add_argument('--no-sandbox')
@@ -30,6 +31,7 @@ def proxy_driver():
     chrome_options_with_proxy.add_argument('--proxy-server=%s' % proxy)
     driver = seleniumwirewebdriver.Chrome(service=service, options=chrome_options_with_proxy)
     return driver
+
 
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
@@ -44,19 +46,31 @@ service = Service()
 def index(request):
     return render(request, 'myapp/index.html')
 
+def get_product_info_view(request):
+    product_id = request.GET.get('search')
+    
+    async def run_async_function():
+        return await get_product_info(request)
+    
+    product_list = asyncio.run(run_async_function())
+    return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
+
 async def get_product_info(request):
     product_id = request.GET.get('search')
     product_list = []
     ali_task = asyncio.create_task(scrape_ali(product_id))
     amazon_task = asyncio.create_task(scrape_amazon(product_id))
     #ebay_task = asyncio.create_task(scrape_ebay(product_id))
-
-    ali_products = await ali_task
-    amazon_products = await amazon_task
+    try:
+        ali_products, amazon_products = await asyncio.gather(ali_task, amazon_task)
+    except Exception as e:
+        print(e)
+        ali_products = []
+        amazon_products = []
 
     product_list = ali_products + amazon_products
     
-    return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
+    return product_list
 
 def element_handling(modal, class_name):
     if " " in class_name:
@@ -109,6 +123,7 @@ async def scrape(url, modal_link, product_name, product_price, product_image, pr
                 product_images = product_images_elements[0].get_attribute('src') if product_images_elements else None
                 products_list.append({"names": product_names, "price": product_prices, "images": product_images})
     
+    driver.quit()
     return products_list
 
 
@@ -149,41 +164,50 @@ async def scrape_amazon(product_id):
 #     return product_list
 
 async def scrape_ali(product_id):
-    print("Scraping Ali")
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    link = link_generation(product_id)
-    url = link["ali"]
+    try:
+        print("Scraping Ali")
+        driver = seleniumwirewebdriver.Chrome(service=service, options=chrome_options)
+        link = link_generation(product_id)
+        url = link["ali"]
 
-    product_modal_link = 'list--gallery--C2f2tvm search-item-card-wrapper-gallery'
-    product_names_link = 'multi--titleText--nXeOvyr'
-    product_price_link = 'multi--price-sale--U-S0jtj'
-    product_image_link= 'images--item--3XZa6xf'
-    product_links_link = ".multi-container .cards .search-card-item"
-    products_list = await scrape(url, product_modal_link, product_names_link, product_price_link, product_image_link, product_links_link, driver)
+        product_modal_link = 'list--gallery--C2f2tvm search-item-card-wrapper-gallery'
+        product_names_link = 'multi--titleText--nXeOvyr'
+        product_price_link = 'multi--price-sale--U-S0jtj'
+        product_image_link= 'images--item--3XZa6xf'
+        product_links_link = ".multi-container .cards .search-card-item"
+        products_list = await scrape(url, product_modal_link, product_names_link, product_price_link, product_image_link, product_links_link, driver)
 
-    return products_list
+        return products_list
+    except Exception as e:
+        print(f"Error in scrape_ali: {e}")
 
 def sort_price(request):
-    if request.method == 'GET':
-        sort_type = request.GET.get('sort-by')
-        products_list = request.session.get('product_list',[])
-        sorted_list = []
-        if sort_type == "low-to-high":
-            low_high_list = sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')))
-            sorted_list = low_high_list
-        if sort_type == "high-to-low":
-            high_low_list= sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')) ,reverse=True)
-            sorted_list = high_low_list
-    return render(request,'myapp/results.html',{"product_list": sorted_list, "product_id": request.session.get('product_id')})
+    try:
+        if request.method == 'GET':
+            sort_type = request.GET.get('sort-by')
+            products_list = request.session.get('product_list',[])
+            sorted_list = []
+            if sort_type == "low-to-high":
+                low_high_list = sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')))
+                sorted_list = low_high_list
+            if sort_type == "high-to-low":
+                high_low_list= sorted(products_list, key=lambda x: float(x['price'].replace('$', '').replace(',', '')) ,reverse=True)
+                sorted_list = high_low_list
+        return render(request,'myapp/results.html',{"product_list": sorted_list, "product_id": request.session.get('product_id')})
+    except Exception as e:
+        print(f"Error in sort_price: {e}")
 
 def price_range(request):
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
-    products_list = request.session.get('product_list',[])
-    filtered_list = []
-    for product in products_list:
-        price = float(product['price'].replace('$', '').replace(',', ''))
-        if price >= float(min_price) and price <= float(max_price):
-            filtered_list.append(product)
-    
-    return render(request, 'myapp/results.html', {"product_list": filtered_list, "product_id": request.session.get('product_id')})
+    try:
+        min_price = request.GET.get('min_price')
+        max_price = request.GET.get('max_price')
+        products_list = request.session.get('product_list',[])
+        filtered_list = []
+        for product in products_list:
+            price = float(product['price'].replace('$', '').replace(',', ''))
+            if price >= float(min_price) and price <= float(max_price):
+                filtered_list.append(product)
+        
+        return render(request, 'myapp/results.html', {"product_list": filtered_list, "product_id": request.session.get('product_id')})
+    except Exception as e:
+        print(f"Error in price_range: {e}")
