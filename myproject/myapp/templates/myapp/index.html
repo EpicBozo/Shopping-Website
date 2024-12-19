@@ -38,9 +38,15 @@
                     <button id="search-button"></button>
                     <input type="text" id="search" name="search" placeholder="search"><br><br>
                 </form>
+                <form method="POST" action="signup/">
+                    {% csrf_token %}
+                    <button id="sign-up" name="sign-up">Sign Up</button>
+                </form>
+                <form method="POST" action="login/">
+                    {% csrf_token %}
+                    <button id="login", name="login">Log In</button>
+                </form>
             </div>
-            <button id="login_button">Login</button>
-            <button id="signup_button">Sign Up</button>
         </div>
         <script src="{% static 'js/script.js' %}"></script>
     </body>

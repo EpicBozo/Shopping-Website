@@ -23,4 +23,6 @@ urlpatterns = [
     path('results/', include('myapp.urls')),
     path("sort/", include('myapp.urls')),
     path("range/", include('myapp.urls')),
+    path("login/", include('myapp.urls')),
+    path("signup/", include('myapp.urls')),
 ]

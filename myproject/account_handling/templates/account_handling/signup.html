@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/signup.css' %}">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Signup</h1>
+    <h1>Sign Up</h1>
+    <form id="signupForm" method="POST" action="signup" onsubmit="return display_modal({{ show_modal|yesno:'true,false' }});">
+        {% csrf_token %}
+    <div>
+        <input id="username" name="username" placeholder="Enter Username">
+        {% if errors.username %}
+            <p style="color: red;">{{ errors.username }}</p>
+        {% endif %}
+    </div>
+    <div>
+        <input id="email" name="email" placeholder="Email Address">
+        {% if errors.email %}
+            <p style="color: red;">{{ errors.email }}</p>
+        {% endif %}
+    </div>
+    <div>
+        <input id="password" type="password" name="password" placeholder="Enter password">
+    </div>
+    <div>
+        <input id="conf_pass" type="password" name="conf_pass" placeholder="Confirm Password">
+    </div>
+    <button id="signup" type= "Submit">Sign Up</button>
+
+        {% if errors.password %}
+            <p style="color: red;">{{ errors.password }}</p>
+        {% endif %}
+
+        {% if errors.password_requirments %}
+            <p style="color: red;">{{ errors.password_requirments }}</p>
+        {% endif %}
+    </form>
+</body>
+<script src="{% static 'js/signup.js' %}"></script>
+</html>

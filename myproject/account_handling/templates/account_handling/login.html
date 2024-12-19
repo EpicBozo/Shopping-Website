@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form method="POST" action="login">
+        {% csrf_token %}
+
+        {% if errors.invalid %}
+            <p style="color: red;">{{ errors.invalid }}</p>
+        {% endif %}
+
+        <input id="username" name = "username"placeholder="Enter Username">
+        <input id = "password" name = "password" placeholder="Enter password">
+        <button id = "login">Login</button>
+    </form>
+</body>
+<script src="{% static 'js/login.js' %}"></script>
+</html>
