@@ -9,6 +9,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from django.shortcuts import redirect
 from selenium.common.exceptions import NoSuchElementException #debugging selenium
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from seleniumwire import webdriver as seleniumwirewebdriver
 from .hidden_config import API_KEY
 
@@ -19,7 +21,6 @@ from .hidden_config import API_KEY
 proxy = f'http://scraperapi:{API_KEY}@proxy-server.scraperapi.com:8001'
 
 def proxy_driver():
-    print("Called proxy driver")
     chrome_options_with_proxy = Options()
     chrome_options_with_proxy.add_experimental_option("detach", True)
     #chrome_options_with_proxy.add_argument('--headless')
@@ -30,7 +31,6 @@ def proxy_driver():
     chrome_options_with_proxy.add_argument('--disable-extensions')
     chrome_options_with_proxy.add_argument('--proxy-server=%s' % proxy)
     driver = seleniumwirewebdriver.Chrome(service=service, options=chrome_options_with_proxy)
-    print("Proxy driver created successfully")
     return driver
 
 chrome_options = Options()
@@ -69,26 +69,35 @@ def element_handling(modal, class_name):
     return element
 
 def scrape(url, modal_link, product_name, product_price, product_image, product_link, driver):
-    print(f"Scraping URL: {url}")
     driver.get(url)
+    print(f"Scraping URL: {url}")
     
+    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, modal_link.replace(" ", "."))))
+    print("Scraping started")
+
     # Gets height of the entire page
-    try:
-        page_height = driver.execute_script("return document.body.scrollHeight")
-        print(page_height)
-    except Exception as e:
-        print(f"Error: {e}")
     scroll_increment = 300
-    scroll_pause = 0.1
+    scroll_pause = 0.05
+    max_attempts = 5
 
     current_scroll = 0
+    attempts = 0
     products = []
     
 
-    while current_scroll < page_height:
+    while current_scroll < page_height and attempts < max_attempts:
         driver.execute_script(f"window.scrollTo(0, {current_scroll});")
-        css_selector = modal_link.replace(" ", ".")
-        modal_paramter = f'#card-list .{css_selector}'
+        if "aliexpress" in url:
+            css_selector = modal_link.replace(" ", ".")
+            modal_paramter = f'#card-list .{css_selector}'
+        elif "amazon" in url:
+            modal_paramter = modal_link.replace(" ", ".")
+        print(modal_paramter)
+
+        if driver.find_elements(By.CSS_SELECTOR, modal_paramter):
+            print("Modal found")
+        else:
+            print("Modal not found")
 
         if driver.find_elements(By.CSS_SELECTOR, modal_paramter):
             products = driver.find_elements(By.CSS_SELECTOR, modal_paramter)
@@ -100,9 +109,12 @@ def scrape(url, modal_link, product_name, product_price, product_image, product_
         new_height = driver.execute_script("return document.body.scrollHeight")
         
         if new_height > page_height:
-            page_height = new_height  
+            page_height = new_height
+            attempts = 0  
         elif current_scroll >= page_height:  
             break
+        else:
+            attempts += 1
     
     print(f"Scraping completed for URL: {url}")
     products_list = []
@@ -124,7 +136,6 @@ def scrape(url, modal_link, product_name, product_price, product_image, product_
     return products_list
 
 def link_generation(product_id):
-    print(f"Generating links for product ID: {product_id}")
     company_links = {}
     ali_id = product_id.replace(" ", "-")
     amazon_ebay_id = product_id.replace(" ", "+")
@@ -134,7 +145,6 @@ def link_generation(product_id):
     company_links["amazon"] = amazon_link
     company_links["ebay"] = ebay_link
     company_links["ali"] = ali_link
-    print(f"Links generated for product ID: {product_id}")
 
     return company_links
 
@@ -144,7 +154,7 @@ def scrape_amazon(product_id):
     link = link_generation(product_id)
     url = link["amazon"]
 
-    product_modal_link = 'puisg-row'
+    product_modal_link = 'sg-col-4-of-24 sg-col-4-of-12 s-result-item s-asin sg-col-4-of-16 sg-col s-widget-spacing-small sg-col-4-of-20'
     product_name_link = 'a-size-medium a-color-base a-text-normal'
     product_price_link = 'a-offscreen'
     product_image_link = 's-image'
@@ -168,7 +178,7 @@ def scrape_ali(product_id):
     link = link_generation(product_id)
     url = link["ali"]
 
-    product_modal_link = 'list--gallery--C2f2tvm search-item-card-wrapper-gallery'
+    product_modal_link = '#card-list .list--gallery--C2f2tvm search-item-card-wrapper-gallery'
     product_names_link = 'multi--titleText--nXeOvyr'
     product_price_link = 'multi--price-sale--U-S0jtj'
     product_image_link= 'images--item--3XZa6xf'
