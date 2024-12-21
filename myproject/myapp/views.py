@@ -4,6 +4,7 @@ import time
 import asyncio
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -18,7 +19,13 @@ from .hidden_config import API_KEY
 # Create your views here.
 
 # Selenium
-proxy = f'http://scraperapi:{API_KEY}@proxy-server.scraperapi.com:8001'
+proxy_options = {
+    'proxy': {
+        'http': f'http://scraperapi:{API_KEY}@proxy-server.scraperapi.com:8001',
+        'https': f'http://scraperapi:{API_KEY}@proxy-server.scraperapi.com:8001',
+        'no_proxy': 'localhost,127.0.0.1',
+        }
+    }
 
 def proxy_driver():
     chrome_options_with_proxy = Options()
@@ -27,10 +34,12 @@ def proxy_driver():
     chrome_options_with_proxy.add_argument('--disable-gpu')
     chrome_options_with_proxy.add_argument('--disable-dev-shm-usage')
     chrome_options_with_proxy.add_argument('--no-sandbox')
-    chrome_options_with_proxy.add_argument('--disable-images')
+    chrome_options_with_proxy.add_argument('--blink-settings=imagesEnabled=false')
     chrome_options_with_proxy.add_argument('--disable-extensions')
-    chrome_options_with_proxy.add_argument('--proxy-server=%s' % proxy)
-    driver = seleniumwirewebdriver.Chrome(service=service, options=chrome_options_with_proxy)
+    chrome_options_with_proxy.add_argument('--disable-extensions')
+    chrome_options_with_proxy.add_argument("--disable-dev-tools")
+    chrome_options_with_proxy.page_load_strategy = 'eager'
+    driver = seleniumwirewebdriver.Chrome(service=service, options=chrome_options_with_proxy, seleniumwire_options=proxy_options)
     return driver
 
 chrome_options = Options()
@@ -53,10 +62,10 @@ def get_product_info(request):
     product_id = request.GET.get('search')
     product_list = []
     ali_task = scrape_ali(product_id)
-    #amazon_task = scrape_amazon(product_id)
+    amazon_task = scrape_amazon(product_id)
     #ebay_task = asyncio.create_task(scrape_ebay(product_id))
 
-    product_list = ali_task #+ amazon_task
+    product_list = ali_task + amazon_task
     
     return render(request, 'myapp/results.html', {"product_list": product_list, "product_id": product_id, "product_count": len(product_list)})
 
